@@ -20,25 +20,35 @@ public class UserManagementApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(UserManagementApplication.class, args);
 	}
-	  @Bean
-	    CommandLineRunner loadData(
-	            RoleRepository roleRepository,
-	            UserRepository userRepository,
-	            PasswordEncoder passwordEncoder) {
+	
+	
+	@Bean
+	CommandLineRunner loadData(
+	        RoleRepository roleRepository,
+	        UserRepository userRepository,
+	        PasswordEncoder passwordEncoder) {
 
-	        return args -> {
+	    return args -> {
 
-	            //  Create roles
-	            Role adminRole = new Role();
-	            adminRole.setName("ROLE_ADMIN");
+	        // Create ROLE_ADMIN if not exists
+	        Role adminRole = roleRepository.findByName("ROLE_ADMIN")
+	                .orElseGet(() -> {
+	                    Role role = new Role();
+	                    role.setName("ROLE_ADMIN");
+	                    return roleRepository.save(role);
+	                });
 
-	            Role userRole = new Role();
-	            userRole.setName("ROLE_USER");
+	        // Create ROLE_USER if not exists
+	        roleRepository.findByName("ROLE_USER")
+	                .orElseGet(() -> {
+	                    Role role = new Role();
+	                    role.setName("ROLE_USER");
+	                    return roleRepository.save(role);
+	                });
 
-	            roleRepository.save(adminRole);
-	            roleRepository.save(userRole);
+	        // Create admin user if not exists
+	        if (!userRepository.existsByEmail("admin@dextero.com")) {
 
-	            //  Create admin user
 	            User admin = new User();
 	            admin.setName("Admin");
 	            admin.setEmail("admin@dextero.com");
@@ -46,10 +56,13 @@ public class UserManagementApplication {
 	            admin.setRoles(Set.of(adminRole));
 
 	            userRepository.save(admin);
-
-	            System.out.println("Default roles and admin user created");
-	        };
-	    }
+	            System.out.println("Admin user created");
+	        }
+	    };
 	}
+}
+	
+	    
+	
 
 
